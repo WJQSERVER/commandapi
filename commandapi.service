@@ -1,0 +1,13 @@
+[Unit]
+Description=CommandApi Service
+After=network.target
+
+[Service]
+ExecStart=/root/zdpj/main
+WorkingDirectory=/root/zdpj
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
