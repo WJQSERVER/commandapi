@@ -1,10 +1,10 @@
 [Unit]
-Description=CommandApi Service
+Description=OSApi Service
 After=network.target
 
 [Service]
-ExecStart=/root/zdpj/main
-WorkingDirectory=/root/zdpj
+ExecStart=/root/data/osapi/osapi
+WorkingDirectory=/root/data/osapi
 Restart=always
 User=root
 Group=root

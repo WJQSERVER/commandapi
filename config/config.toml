@@ -1,0 +1,6 @@
+[server]
+port = 13379
+
+[log]
+logfilepath = "/root/data/osapi/log/go.log" 
+maxlogsize = 5 # MB

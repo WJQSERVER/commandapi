@@ -1,2 +1,1 @@
-# commandapi
-commandapi
+# Go项目模板

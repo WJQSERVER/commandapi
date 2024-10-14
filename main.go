@@ -1,71 +1,62 @@
 package main
 
 import (
-	"encoding/json"
+	"CommandApi/config"
+	"CommandApi/forward"
+	"CommandApi/logger"
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"os/exec"
-	"time"
 )
 
-type CommandRequest struct {
-	Command string `json:"command"`
+var (
+	cfg        *config.Config
+	configfile = "/data/go/config/config.yaml"
+)
+
+// 日志模块
+var (
+	logw       = logger.Logw
+	logInfo    = logger.LogInfo
+	LogWarning = logger.LogWarning
+	logError   = logger.LogError
+)
+
+func ReadFlag() {
+	cfgfile := flag.String("cfg", configfile, "config file path")
+	configfile = *cfgfile
 }
 
-type CommandResponse struct {
-	Stdout     string `json:"stdout"`
-	Stderr     string `json:"stderr"`
-	ReturnCode int    `json:"returncode"`
-	Error      string `json:"error,omitempty"`
-}
-
-func executeCommand(w http.ResponseWriter, r *http.Request) {
-	var req CommandRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
-		return
-	}
-
-	if req.Command == "" {
-		http.Error(w, "No command provided", http.StatusBadRequest)
-		return
-	}
-
-	// 记录请求信息
-	log.Printf("Received command: %s, Time: %s, User-Agent: %s\n", req.Command, time.Now().Format(time.RFC3339), r.UserAgent())
-
-	cmd := exec.Command("sh", "-c", req.Command)
-	stdout, err := cmd.CombinedOutput()
-	returnCode := cmd.ProcessState.ExitCode()
-
-	response := CommandResponse{
-		Stdout:     string(stdout),
-		Stderr:     "",
-		ReturnCode: returnCode,
-	}
-
+func loadConfig() {
+	var err error
+	// 初始化配置
+	cfg, err = config.LoadConfig(configfile)
 	if err != nil {
-		response.Error = err.Error()
-		response.Stderr = string(stdout)
+		log.Fatalf("Failed to load config: %v", err)
 	}
+	fmt.Printf("Loaded config: %v\n", cfg)
+}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+func setupLogger() {
+	// 初始化日志模块
+	err := logger.Init(cfg.Log.LogFilePath, cfg.Log.MaxLogSize) // 传递日志文件路径
+	if err != nil {
+		log.Fatalf("Failed to initialize logger: %v", err)
+	}
+	logInfo("Logger initialized")
+	logInfo("Init Completed")
+}
+
+func init() {
+	ReadFlag()
+	loadConfig()
+	setupLogger()
 }
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile) // 设置日志格式
-
-	logFile, err := os.OpenFile("./log/run.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatal("Cannot open log file: ", err)
-	}
-	defer logFile.Close()
-
-	log.SetOutput(logFile)
-
-	http.HandleFunc("/execute", executeCommand)
-	log.Println("Server starting on port 6329...")
-	http.ListenAndServe(":6329", nil)
+	defer logger.Close() // 确保在退出时关闭日志文件
+	http.HandleFunc("/execute", forward.ExecuteCommand)
+	logInfo("Server starting on port %d", cfg.Server.Port)
+	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Server.Port), nil)
 }
