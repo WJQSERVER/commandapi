@@ -3,7 +3,7 @@ Description=OSApi Service
 After=network.target
 
 [Service]
-ExecStart=/root/data/osapi/osapi
+ExecStart=/bin/bash -c '/root/data/osapi/osapi -cfg /root/data/osapi/config/config.toml > /root/data/osapi/log/run.log 2>&1'
 WorkingDirectory=/root/data/osapi
 Restart=always
 User=root

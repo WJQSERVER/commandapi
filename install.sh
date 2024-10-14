@@ -14,8 +14,8 @@ wget -O /root/data/osapi/osapi https://github.com/WJQSERVER/commandapi/releases/
 chmod +x /root/data/osapi/osapi
 
 # 配置文件
-if [ ! -f /root/data/commandapi/config/config.toml ]; then
-    wget -O /root/data/commandapi/config/config.toml https://raw.githubusercontent.com/WJQSERVER/commandapi/main/config/config.toml
+if [ ! -f /root/data/osapi/config/config.toml ]; then
+    wget -O /root/data/osapi/config/config.toml https://raw.githubusercontent.com/WJQSERVER/commandapi/main/config/config.toml
 fi
 
 # 拉取 systemd unit 文件
