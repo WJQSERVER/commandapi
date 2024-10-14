@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# /bin/bash
-
 # 创建目录
 mkdir -p /root/data/osapi
 mkdir -p /root/data/osapi/log
